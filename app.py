@@ -5,39 +5,23 @@ import os
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
-class Card:
-    def __init__(self, suit, rank):
-        self.suit = suit
-        self.rank = rank
-
-    def to_dict(self):
-        return {'suit': self.suit, 'rank': self.rank}
-
 class Deck:
     def __init__(self):
-        self.suits = ['♥', '♦', '♣', '♠']
-        self.ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
-        self.cards = [Card(suit, rank) for suit in self.suits for rank in self.ranks]
-        self.used_cards = set()
+        suits = ['♥', '♦', '♣', '♠']
+        ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+        self.cards = [{'suit': suit, 'rank': rank} for suit in suits for rank in ranks]
+        self.used_cards = []
         random.shuffle(self.cards)
     
     def draw(self, count):
         available_cards = [card for card in self.cards 
-                         if f"{card.rank}{card.suit}" not in self.used_cards]
+                         if f"{card['rank']}{card['suit']}" not in self.used_cards]
         if len(available_cards) < count:
             return []
         
         drawn_cards = available_cards[:count]
-        for card in drawn_cards:
-            self.used_cards.add(f"{card.rank}{card.suit}")
-        return [card.to_dict() for card in drawn_cards]
-
-    def remove_cards(self, cards):
-        for card in cards:
-            self.used_cards.add(f"{card['rank']}{card['suit']}")
-
-    def is_card_used(self, rank, suit):
-        return f"{rank}{suit}" in self.used_cards
+        self.used_cards.extend(f"{card['rank']}{card['suit']}" for card in drawn_cards)
+        return drawn_cards
 
 @app.route('/')
 def home():
@@ -49,7 +33,7 @@ def home():
                 'middle': [''] * 5,
                 'bottom': [''] * 5
             },
-            'used_cards': set(),
+            'used_cards': [],  # Changed from set to list
             'draw_count': 0,
             'initial_cards_placed': False,
             'is_fullscreen': False,
@@ -66,7 +50,7 @@ def training():
                 'middle': [''] * 5,
                 'bottom': [''] * 5
             },
-            'used_cards': set(),
+            'used_cards': [],  # Changed from set to list
             'is_fullscreen': False,
             'fantasy_mode': False
         }
@@ -84,7 +68,7 @@ def start_game():
             'middle': [''] * 5,
             'bottom': [''] * 5
         },
-        'used_cards': set(f"{card['rank']}{card['suit']}" for card in initial_cards),
+        'used_cards': [f"{card['rank']}{card['suit']}" for card in initial_cards],  # Changed from set to list
         'draw_count': 0,
         'initial_cards_placed': False,
         'is_fullscreen': session.get('game_state', {}).get('is_fullscreen', False),
@@ -110,7 +94,7 @@ def draw_cards():
     
     if next_cards:
         game_state['hand'].extend(next_cards)
-        game_state['used_cards'].update(f"{card['rank']}{card['suit']}" for card in next_cards)
+        game_state['used_cards'].extend(f"{card['rank']}{card['suit']}" for card in next_cards)
         game_state['draw_count'] = game_state.get('draw_count', 0) + 1
         session['game_state'] = game_state
         return jsonify({'cards': next_cards})
@@ -131,7 +115,6 @@ def update_state():
     if not all(key in new_state for key in required_keys):
         return jsonify({'error': 'Missing required game state fields'}), 400
     
-    # Сохраняем дополнительные настройки
     new_state['is_fullscreen'] = new_state.get('is_fullscreen', 
                                               session.get('game_state', {}).get('is_fullscreen', False))
     new_state['fantasy_mode'] = new_state.get('fantasy_mode', 
