@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Training Mode</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            overflow-x: hidden;
+            min-height: 100vh;
+            padding-bottom: 150px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 1001;
+            background: #f0f0f0;
+            padding: 10px;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        button:hover {
+            background-color: #45a049;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        button:active {
+            transform: translateY(1px);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .menu-toggle {
+            position: fixed;
+            left: 20px;
+            top: 20px;
+            z-index: 1003;
+            background: #4CAF50;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+
+        .menu-panel {
+            position: fixed;
+            left: -300px;
+            top: 0;
+            bottom: 0;
+            width: 300px;
+            background: white;
+            z-index: 1002;
+            transition: left 0.3s ease;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+
+        .menu-panel.open {
+            left: 0;
+        }
+
+        .setting-group {
+            margin-bottom: 20px;
+        }
+
+        .setting-group label {
+            display: block;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        .setting-group select,
+        .setting-group input[type="range"] {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .setting-group input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        .fullscreen-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: #333;
+            cursor: pointer;
+            z-index: 1002;
+            padding: 8px;
+            box-shadow: none;
+        }
+      .table {
+            display: grid;
+            grid-template-rows: auto auto auto;
+            gap: 20px;
+            margin: 20px auto;
+            width: 95%;
+            max-width: 1200px;
+            background-color: #1a472a;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+            overflow: visible;
+            position: relative;
+        }
+
+        .row {
+            display: flex;
+            justify-content: center;
+            gap: 2%;
+            min-height: 120px;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: rgba(255,255,255,0.1);
+            flex-wrap: nowrap;
+        }
+
+        .card {
+            width: calc(70px + 2vw);
+            height: calc(100px + 2vw);
+            min-width: 50px;
+            min-height: 70px;
+            border-radius: 8px;
+            background-color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: calc(16px + 1vw);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            position: relative;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .card[data-suit="♥"], .card[data-suit="♦"] {
+            color: #e44145;
+        }
+
+        .card[data-suit="♣"], .card[data-suit="♠"] {
+            color: #2d2d2d;
+        }
+
+        .card-slot {
+            width: calc(70px + 2vw);
+            height: calc(100px + 2vw);
+            min-width: 50px;
+            min-height: 70px;
+            border: 2px dashed rgba(255,255,255,0.3);
+            border-radius: 8px;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .card-slot:hover {
+            border-color: rgba(255,255,255,0.5);
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .card-controls {
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-width: 1200px;
+            position: relative;
+        }
+
+        .selector-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .selector-item {
+            padding: 12px 20px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .selector-item:hover {
+            border-color: #4CAF50;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .selector-item.selected {
+            background-color: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+      .action-buttons {
+            position: absolute;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+
+        .add-button {
+            position: absolute;
+            left: -35px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: auto;
+            z-index: 1;
+        }
+
+        .remove-button {
+            position: absolute;
+            right: -35px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: auto;
+            z-index: 1;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+                padding-bottom: 120px;
+            }
+
+            .table {
+                width: 98%;
+                padding: 10px;
+                gap: 10px;
+            }
+
+            .row {
+                gap: 1.5%;
+                min-height: 80px;
+            }
+
+            .card, .card-slot {
+                width: calc(45px + 2vw);
+                height: calc(65px + 2vw);
+                font-size: calc(14px + 1vw);
+            }
+
+            .card-controls {
+                padding: 10px;
+            }
+
+            .selector-item {
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+
+            .menu-panel {
+                width: 250px;
+            }
+
+            .action-buttons button {
+                width: 25px;
+                height: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="menu-toggle" onclick="toggleMenu()">
+        <span class="material-icons">menu</span>
+    </button>
+
+    <div class="menu-panel">
+        <h3>Настройки</h3>
+        <div class="setting-group">
+            <label>
+                <input type="checkbox" id="fantasyMode" onchange="updateSettings()">
+                Режим фантазии
+            </label>
+        </div>
+        <div class="setting-group">
+            <label>Тип фантазии:</label>
+            <select id="fantasyType" onchange="updateSettings()">
+                <option value="normal">Обычная</option>
+                <option value="progressive">Прогрессивная</option>
+            </select>
+        </div>
+        <div class="setting-group">
+            <label>Время на ход ИИ (сек):</label>
+            <input type="range" id="aiTime" min="1" max="60" value="5" onchange="updateSettings()">
+            <span id="aiTimeValue">5</span>
+        </div>
+        <div class="setting-group">
+            <label>Тип ИИ:</label>
+            <select id="aiType" onchange="updateSettings()">
+                <option value="random">Случайный</option>
+                <option value="mccfr">MCCFR</option>
+            </select>
+        </div>
+    </div>
+    <button class="fullscreen-btn" onclick="toggleFullScreen()">
+        <span class="material-icons">fullscreen</span>
+    </button>
+
+    <div class="controls">
+        <button onclick="window.location.href='/'">К игре</button>
+        <button onclick="resetTraining()">Сброс</button>
+    </div>
+
+    <div class="table">
+        <div class="action-buttons">
+            <button class="add-button" onclick="distributeCards()">+</button>
+            <button class="remove-button" onclick="removeSelectedCards()">-</button>
+        </div>
+        <div class="row top" id="top-row"></div>
+        <div class="row middle" id="middle-row"></div>
+        <div class="row bottom" id="bottom-row"></div>
+    </div>
+
+    <div class="card-controls">
+        <div class="selector-row">
+            <!-- Ranks -->
+            <div class="selector-item" data-rank="A">A</div>
+            <div class="selector-item" data-rank="K">K</div>
+            <div class="selector-item" data-rank="Q">Q</div>
+            <div class="selector-item" data-rank="J">J</div>
+            <div class="selector-item" data-rank="10">10</div>
+            <div class="selector-item" data-rank="9">9</div>
+            <div class="selector-item" data-rank="8">8</div>
+            <div class="selector-item" data-rank="7">7</div>
+            <div class="selector-item" data-rank="6">6</div>
+            <div class="selector-item" data-rank="5">5</div>
+            <div class="selector-item" data-rank="4">4</div>
+            <div class="selector-item" data-rank="3">3</div>
+            <div class="selector-item" data-rank="2">2</div>
+        </div>
+        <div class="selector-row">
+            <!-- Suits -->
+            <div class="selector-item" data-suit="♥">♥</div>
+            <div class="selector-item" data-suit="♦">♦</div>
+            <div class="selector-item" data-suit="♣">♣</div>
+            <div class="selector-item" data-suit="♠">♠</div>
+        </div>
+    </div>
+
+    <script>
+        let trainingState = {{ training_state|tojson|safe }};
+        let menuOpen = false;
+        let selectedRank = null;
+        let selectedSuit = null;
+        let usedCards = new Set();
+
+        function toggleMenu() {
+            const menu = document.querySelector('.menu-panel');
+            menuOpen = !menuOpen;
+            menu.classList.toggle('open');
+        }
+
+        // Закрытие меню при клике вне его
+        document.addEventListener('click', (e) => {
+            if (menuOpen && !e.target.closest('.menu-panel') && !e.target.closest('.menu-toggle')) {
+                toggleMenu();
+            }
+        });
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+                trainingState.is_fullscreen = true;
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                    trainingState.is_fullscreen = false;
+                }
+            }
+            updateSettings();
+        }
+      function updateSettings() {
+            const settings = {
+                is_fullscreen: trainingState.is_fullscreen,
+                fantasy_mode: document.getElementById('fantasyMode').checked,
+                fantasy_type: document.getElementById('fantasyType').value,
+                ai_time: document.getElementById('aiTime').value,
+                ai_type: document.getElementById('aiType').value
+            };
+
+            fetch('/update_settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(settings)
+            });
+        }
+
+        function createCard(cardData) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.dataset.rank = cardData.rank;
+            card.dataset.suit = cardData.suit;
+            card.textContent = `${cardData.rank}${cardData.suit}`;
+            
+            if (cardData.suit === '♥' || cardData.suit === '♦') {
+                card.style.color = '#e44145';
+            }
+
+            // Добавляем обработчик двойного клика для удаления карты
+            card.addEventListener('dblclick', () => {
+                const cardKey = `${card.dataset.rank}${card.dataset.suit}`;
+                usedCards.delete(cardKey);
+                card.remove();
+                updateTableState();
+            });
+            
+            return card;
+        }
+
+        function setupTable() {
+            const topRow = document.getElementById('top-row');
+            const middleRow = document.getElementById('middle-row');
+            const bottomRow = document.getElementById('bottom-row');
+
+            topRow.innerHTML = '';
+            middleRow.innerHTML = '';
+            bottomRow.innerHTML = '';
+
+            for (let i = 0; i < 3; i++) {
+                const slot = createCardSlot();
+                topRow.appendChild(slot);
+            }
+
+            for (let i = 0; i < 5; i++) {
+                const slot = createCardSlot();
+                middleRow.appendChild(slot);
+            }
+
+            for (let i = 0; i < 5; i++) {
+                const slot = createCardSlot();
+                bottomRow.appendChild(slot);
+            }
+        }
+
+        function createCardSlot() {
+            const slot = document.createElement('div');
+            slot.className = 'card-slot';
+            
+            slot.addEventListener('click', () => {
+                if (selectedRank && selectedSuit) {
+                    const cardKey = `${selectedRank}${selectedSuit}`;
+                    if (!usedCards.has(cardKey)) {
+                        // Если в слоте уже есть карта, удаляем ее
+                        if (slot.children.length > 0) {
+                            const existingCard = slot.children[0];
+                            const existingCardKey = `${existingCard.dataset.rank}${existingCard.dataset.suit}`;
+                            usedCards.delete(existingCardKey);
+                            existingCard.remove();
+                        }
+                        
+                        const card = createCard({rank: selectedRank, suit: selectedSuit});
+                        slot.appendChild(card);
+                        usedCards.add(cardKey);
+                        updateTableState();
+                    }
+                }
+            });
+            
+            return slot;
+        }
+
+        function handleCardSelection(element) {
+            if (element.dataset.rank) {
+                if (selectedRank === element.dataset.rank) {
+                    selectedRank = null;
+                    element.classList.remove('selected');
+                } else {
+                    document.querySelectorAll('[data-rank]').forEach(el => 
+                        el.classList.remove('selected')
+                    );
+                    selectedRank = element.dataset.rank;
+                    element.classList.add('selected');
+                }
+            } else if (element.dataset.suit) {
+                if (selectedSuit === element.dataset.suit) {
+                    selectedSuit = null;
+                    element.classList.remove('selected');
+                } else {
+                    document.querySelectorAll('[data-suit]').forEach(el => 
+                        el.classList.remove('selected')
+                    );
+                    selectedSuit = element.dataset.suit;
+                    element.classList.add('selected');
+                }
+            }
+        }
+      function updateTableState() {
+            trainingState.table = {
+                top: Array.from(document.querySelectorAll('#top-row .card-slot')).map(slot => 
+                    slot.children[0] ? {
+                        rank: slot.children[0].dataset.rank,
+                        suit: slot.children[0].dataset.suit
+                    } : ''),
+                middle: Array.from(document.querySelectorAll('#middle-row .card-slot')).map(slot =>
+                    slot.children[0] ? {
+                        rank: slot.children[0].dataset.rank,
+                        suit: slot.children[0].dataset.suit
+                    } : ''),
+                bottom: Array.from(document.querySelectorAll('#bottom-row .card-slot')).map(slot =>
+                    slot.children[0] ? {
+                        rank: slot.children[0].dataset.rank,
+                        suit: slot.children[0].dataset.suit
+                    } : '')
+            };
+
+            fetch('/update_state', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(trainingState)
+            });
+        }
+
+        function removeSelectedCards() {
+            document.querySelectorAll('.card').forEach(card => {
+                const cardKey = `${card.dataset.rank}${card.dataset.suit}`;
+                usedCards.delete(cardKey);
+                card.remove();
+            });
+            updateTableState();
+        }
+
+        function distributeCards() {
+            const allSlots = document.querySelectorAll('.card-slot');
+            const emptySlots = Array.from(allSlots).filter(slot => !slot.children.length);
+            
+            if (emptySlots.length === 0) {
+                alert('Нет свободных слотов для распределения карт!');
+                return;
+            }
+
+            const availableCards = [];
+            for (const rank of ['A', 'K', 'Q', 'J', '10', '9', '8', '7', '6', '5', '4', '3', '2']) {
+                for (const suit of ['♥', '♦', '♣', '♠']) {
+                    const cardKey = `${rank}${suit}`;
+                    if (!usedCards.has(cardKey)) {
+                        availableCards.push({ rank, suit });
+                    }
+                }
+            }
+
+            if (availableCards.length === 0) {
+                alert('Нет доступных карт для распределения!');
+                return;
+            }
+
+            // Перемешиваем доступные карты
+            for (let i = availableCards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [availableCards[i], availableCards[j]] = [availableCards[j], availableCards[i]];
+            }
+
+            // Распределяем карты по пустым слотам
+            for (let i = 0; i < Math.min(emptySlots.length, availableCards.length); i++) {
+                const card = createCard(availableCards[i]);
+                emptySlots[i].appendChild(card);
+                usedCards.add(`${availableCards[i].rank}${availableCards[i].suit}`);
+            }
+
+            updateTableState();
+        }
+
+        function resetTraining() {
+            setupTable();
+            usedCards.clear();
+            selectedRank = null;
+            selectedSuit = null;
+            document.querySelectorAll('.selector-item').forEach(el => 
+                el.classList.remove('selected')
+            );
+            updateTableState();
+        }
+
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', () => {
+            setupTable();
+            
+            // Восстанавливаем состояние тренировки
+            if (trainingState.table) {
+                Object.entries(trainingState.table).forEach(([row, cards]) => {
+                    cards.forEach((card, index) => {
+                        if (card) {
+                            const slot = document.querySelector(`#${row}-row .card-slot:nth-child(${index + 1})`);
+                            const cardElement = createCard(card);
+                            slot.appendChild(cardElement);
+                            usedCards.add(`${card.rank}${card.suit}`);
+                        }
+                    });
+                });
+            }
+
+            // Добавляем обработчики для селекторов карт
+            document.querySelectorAll('.selector-item').forEach(item => {
+                item.addEventListener('click', () => handleCardSelection(item));
+            });
+
+            // Восстанавливаем настройки
+            document.getElementById('fantasyMode').checked = trainingState.fantasy_mode;
+            document.getElementById('aiTimeValue').textContent = document.getElementById('aiTime').value;
+
+            // Восстанавливаем полноэкранный режим
+            if (localStorage.getItem('restoreFullscreen') === 'true') {
+                localStorage.removeItem('restoreFullscreen');
+                document.documentElement.requestFullscreen();
+                trainingState.is_fullscreen = true;
+                updateSettings();
+            }
+        });
+    </script>
+</body>
+</html>
