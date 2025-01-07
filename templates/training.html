@@ -493,7 +493,7 @@
             slot.addEventListener('click', () => {
                 if (selectedRank && selectedSuit) {
                     const cardKey = `${selectedRank}${selectedSuit}`;
-                    if (!usedCards.has(cardKey)) {
+                    if (!usedCards.includes(cardKey)) {
                         // Если в слоте уже есть карта, удаляем ее
                         if (slot.children.length > 0) {
                             const existingCard = slot.children[0];
@@ -504,7 +504,7 @@
                         
                         const card = createCard({rank: selectedRank, suit: selectedSuit});
                         slot.appendChild(card);
-                        usedCards.add(cardKey);
+                        usedCards.push(cardKey);
                         updateTableState();
                     }
                 }
@@ -569,7 +569,7 @@
         function removeSelectedCards() {
             document.querySelectorAll('.card').forEach(card => {
                 const cardKey = `${card.dataset.rank}${card.dataset.suit}`;
-                usedCards.delete(cardKey);
+                usedCards = usedCards.filter(card => card !== cardKey);
                 card.remove();
             });
             updateTableState();
@@ -588,7 +588,7 @@
             for (const rank of ['A', 'K', 'Q', 'J', '10', '9', '8', '7', '6', '5', '4', '3', '2']) {
                 for (const suit of ['♥', '♦', '♣', '♠']) {
                     const cardKey = `${rank}${suit}`;
-                    if (!usedCards.has(cardKey)) {
+                    if (!usedCards.includes(cardKey)) {
                         availableCards.push({ rank, suit });
                     }
                 }
